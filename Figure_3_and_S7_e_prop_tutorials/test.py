@@ -11,12 +11,13 @@ import numpy.random as rd
 import tensorflow as tf
 from tools import update_plot
 from models import EligALIF, exp_convolve
+import h5py
 
 FLAGS = tf.app.flags.FLAGS
 start_time = datetime.datetime.now()
 # training parameters
-tf.app.flags.DEFINE_integer('n_batch', 64, 'batch size')
-tf.app.flags.DEFINE_integer('n_iter', 1, 'total number of iterations')
+tf.app.flags.DEFINE_integer('n_batch', 2, 'batch size')#64
+tf.app.flags.DEFINE_integer('n_iter', 5, 'total number of iterations')
 tf.app.flags.DEFINE_float('learning_rate', 0.005, 'Base learning rate.')
 tf.app.flags.DEFINE_float('stop_crit', 0.07, 'Stopping criterion. Stops training if error goes below this value')
 tf.app.flags.DEFINE_integer('print_every', 10, 'Print every')
@@ -262,6 +263,8 @@ results_tensors = {
     'regularization_coeff': regularization_coeff,
 }
 
+save_tensor = {'z':z, 'v':v}
+
 
 plot_result_tensors = {'input_spikes': input_spikes,
                        'input_nums': input_nums,
@@ -269,6 +272,7 @@ plot_result_tensors = {'input_spikes': input_spikes,
                        'thr': tf.constant(thr),
                        'target_nums': target_nums,
                        }
+
 try:
     flag_dict = FLAGS.flag_values_dict()
 except:
@@ -368,6 +372,12 @@ for k_iter in range(FLAGS.n_iter):
 
     # do train step
     train_dict = get_data_dict(FLAGS.n_batch)
+    save_tensor = sess.run(save_tensor, feed_dict=train_dict)
+    with h5py.File('test_tf.hdf5', 'w') as f:
+        grp = f.create_group('epoch_' + str(k_iter))
+        grp.create_dataset(name='v', data=save_tensor['v'])
+        grp.create_dataset(name='z', data=save_tensor['z'])
+
     t0 = time()
     sess.run(train_step, feed_dict=train_dict)
     t_train = time() - t0
