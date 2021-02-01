@@ -371,12 +371,13 @@ for k_iter in range(FLAGS.n_iter):
         break
 
     # do train step
+    import pdb; pdb.set_trace()
     train_dict = get_data_dict(FLAGS.n_batch)
-    save_tensor = sess.run(save_tensor, feed_dict=train_dict)
+    save_value = sess.run(save_tensor, feed_dict=train_dict)
     with h5py.File('test_tf.hdf5', 'w') as f:
         grp = f.create_group('epoch_' + str(k_iter))
-        grp.create_dataset(name='v', data=save_tensor['v'])
-        grp.create_dataset(name='z', data=save_tensor['z'])
+        grp.create_dataset(name='v', data=save_value['v'])
+        grp.create_dataset(name='z', data=save_value['z'])
 
     t0 = time()
     sess.run(train_step, feed_dict=train_dict)
